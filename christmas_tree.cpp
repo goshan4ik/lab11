@@ -1,10 +1,16 @@
 #include <GL/freeglut.h>
 #include <SOIL/SOIL.h>
 #include <math.h>
+#include <glm/glm.hpp>
+#include <glm/gtx/rotate_vector.hpp>
 
 const double PI = acos(-1);
 
 static int w = 0, h = 0;
+
+int tree_rotate_angle = 1;
+int tree_z_angle = 0;
+
 
 float camera_rotate_x = 0.f;
 float camera_rotate_y = 0.f;
@@ -14,11 +20,16 @@ float car_x = 0.f;
 float car_z = 0.f;
 float car_rotate_y = 0.f;
 
+GLuint floor_texture_id;
+
 void loadTextures() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+    floor_texture_id = SOIL_load_OGL_texture("data/floor.bmp", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID,
+                                             SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y | SOIL_FLAG_NTSC_SAFE_RGB | SOIL_FLAG_COMPRESS_TO_DXT);
 
 }
 
@@ -66,6 +77,8 @@ void init() {
 void drawFloor() {
     glEnable(GL_TEXTURE_2D);
     glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+    glBindTexture(GL_TEXTURE_2D, floor_texture_id);
+
 
     glBegin(GL_QUADS);
     bool rotated = false;
@@ -136,6 +149,80 @@ void drawLamps() {
     glRotatef(90.f, 1, 0, 0);
     glLightfv(GL_LIGHT4, GL_POSITION, light_pos);
     glPopMatrix();
+}
+
+void drawChristmasTree() {
+
+    tree_z_angle = (tree_z_angle + tree_rotate_angle) % 360;
+
+
+    glColor3f(0.5f, 0.35f, 0.05f);
+    glPushMatrix();
+    glTranslatef(0, 0.f, 0);
+    glRotatef(-90.f, 1, 0, 0);
+    glRotatef(tree_z_angle, 0, 0, 1);
+    glutSolidCylinder(0.3, 1, 10, 10);
+    glPopMatrix();
+
+    glColor3f(0.5f, 0.5f, 0.5f);
+    glColor3f(0, 1, 0);
+    glPushMatrix();
+    glTranslatef(0, 1.2f, 0);
+    glRotatef(270.0, 1.0, 0.0, 0.0);
+    glRotatef(tree_z_angle, 0, 0, 1);
+    glutSolidCone(2.0, 2, 15, 5);
+    glPopMatrix();
+
+    glPushMatrix();
+    glTranslatef(0, 3.2f, 0);
+    glRotatef(270.0, 1.0, 0.0, 0.0);
+    glRotatef(tree_z_angle, 0, 0, 1);
+    glutSolidCone(1.7f, 1.7f, 15, 5);
+    glPopMatrix();
+
+    glPushMatrix();
+    glTranslatef(0, 4.9f, 0);
+    glRotatef(270.0, 1.0, 0.0, 0.0);
+    glRotatef(tree_z_angle, 0, 0, 1);
+    glutSolidCone(1.3f, 1.3f, 15, 5);
+    glPopMatrix();
+
+    glPushMatrix();
+    glTranslatef(0, 6.1f, 0);
+    glRotatef(270.0, 1.0, 0.0, 0.0);
+    glRotatef(tree_z_angle, 0, 0, 1);
+    glutSolidCone(1, 1, 15, 5);
+    glPopMatrix();
+
+    glColor3f(1, 0, 0);
+    glPushMatrix();
+    auto translationVector = glm::rotateY(glm::vec4(0.82f, 2.2f, 0.82f, 0), (float)tree_z_angle / 57.f);
+    glTranslatef(translationVector.x, translationVector.y, translationVector.z);
+    glutSolidSphere(0.2f, 20, 20);
+    glPopMatrix();
+
+    glColor3f(1, 0, 0);
+    glPushMatrix();
+    translationVector = glm::rotateY(glm::vec4(1.f, 3.2f, 1.7f, 0), (float)tree_z_angle / 57.f);
+    glTranslatef(translationVector.x, translationVector.y, translationVector.z);
+    glutSolidSphere(0.2f, 20, 20);
+    glPopMatrix();
+
+    glColor3f(1, 0, 0);
+    glPushMatrix();
+    translationVector = glm::rotateY(glm::vec4(-0.9f, 4.2f, -0.2f, 0), (float)tree_z_angle / 57.f);
+    glTranslatef(translationVector.x, translationVector.y, translationVector.z);
+    glutSolidSphere(0.2f, 20, 20);
+    glPopMatrix();
+
+    for (auto j = 0; j <= 360; j+=36) {
+        glColor3f(0, 0, 1);
+        glPushMatrix();
+        translationVector = glm::rotateY(glm::vec4(2.f*cos(j), 1.2f, 2.f*sin(j), 0), (float)tree_z_angle / 57.f);
+        glTranslatef(translationVector.x, translationVector.y, translationVector.z);
+        glutSolidSphere(0.25f, 20, 20);
+        glPopMatrix();
+    }
 }
 
 void drawCar() {
@@ -221,6 +308,7 @@ void update() {
     drawHeadlights();
     drawLamps();
     drawFloor();
+    drawChristmasTree();
     drawCar();
 
     glFlush();
@@ -237,8 +325,8 @@ void setCameraLight() {
     glGetDoublev(GL_PROJECTION_MATRIX, projection_mat);
 
     gluUnProject(double(viewport[2] - viewport[0]) / 2, double(viewport[3] - viewport[1]) / 2, 0.,
-        modelview_mat, projection_mat, viewport,
-        &camera_posd[0], &camera_posd[1], &camera_posd[2]);
+                 modelview_mat, projection_mat, viewport,
+                 &camera_posd[0], &camera_posd[1], &camera_posd[2]);
 
     GLfloat camera_pos[4]{ 0.f, 0.f, 0.f, 1.f };
     for (int i = 0; i < 3; ++i)
@@ -249,8 +337,8 @@ void setCameraLight() {
         spot_direction[i] = -camera_pos[i];
 
     double len = sqrt(spot_direction[0] * spot_direction[0] +
-        spot_direction[1] * spot_direction[1] +
-        spot_direction[2] * spot_direction[2]);
+                      spot_direction[1] * spot_direction[1] +
+                      spot_direction[2] * spot_direction[2]);
     for (int i = 0; i < 3; ++i)
         spot_direction[i] /= len;
 
@@ -275,30 +363,30 @@ void updateCamera() {
 void mouse(int button, int state, int x, int y) {
     if (state == GLUT_DOWN) {
         switch (button) {
-        case GLUT_LEFT_BUTTON:
-            if (glIsEnabled(GL_LIGHT0))
-                glDisable(GL_LIGHT0);
-            else
-                glEnable(GL_LIGHT0);
-            break;
-        case GLUT_RIGHT_BUTTON:
-            if (glIsEnabled(GL_LIGHT5)) {
-                glDisable(GL_LIGHT5);
-                glDisable(GL_LIGHT6);
-            }
-            else {
-                glEnable(GL_LIGHT5);
-                glEnable(GL_LIGHT6);
-            }
-            break;
-        default:
-            if (button == 3)
-                camera_dist -= 0.1f;
-            else if (button == 4)
-                camera_dist += 0.1f;
-            else return;
+            case GLUT_LEFT_BUTTON:
+                if (glIsEnabled(GL_LIGHT0))
+                    glDisable(GL_LIGHT0);
+                else
+                    glEnable(GL_LIGHT0);
+                break;
+            case GLUT_RIGHT_BUTTON:
+                if (glIsEnabled(GL_LIGHT5)) {
+                    glDisable(GL_LIGHT5);
+                    glDisable(GL_LIGHT6);
+                }
+                else {
+                    glEnable(GL_LIGHT5);
+                    glEnable(GL_LIGHT6);
+                }
+                break;
+            default:
+                if (button == 3)
+                    camera_dist -= 0.1f;
+                else if (button == 4)
+                    camera_dist += 0.1f;
+                else return;
 
-            updateCamera();
+                updateCamera();
         }
     }
     glutPostRedisplay();
@@ -306,78 +394,84 @@ void mouse(int button, int state, int x, int y) {
 
 void driving(int key, int x, int y) {
     switch (key) {
-    case GLUT_KEY_UP:
-        car_z += sin(-car_rotate_y / 180 * PI);
-        car_x += cos(-car_rotate_y / 180 * PI);
-        break;
-    case GLUT_KEY_DOWN:
-        car_z -= sin(-car_rotate_y / 180 * PI);
-        car_x -= cos(-car_rotate_y / 180 * PI);
-        break;
+        case GLUT_KEY_UP:
+            car_z += sin(-car_rotate_y / 180 * PI);
+            car_x += cos(-car_rotate_y / 180 * PI);
+            break;
+        case GLUT_KEY_DOWN:
+            car_z -= sin(-car_rotate_y / 180 * PI);
+            car_x -= cos(-car_rotate_y / 180 * PI);
+            break;
 
-    case GLUT_KEY_RIGHT:
-        car_rotate_y -= 5.f;
-        break;
-    case GLUT_KEY_LEFT:
-        car_rotate_y += 5.f;
-        break;
+        case GLUT_KEY_RIGHT:
+            car_rotate_y -= 5.f;
+            break;
+        case GLUT_KEY_LEFT:
+            car_rotate_y += 5.f;
+            break;
 
-    default:
-        return;
+        default:
+            return;
     }
     glutPostRedisplay();
 }
 
 void keyboard(unsigned char key, int x, int y) {
     switch (key) {
-    case 'a':
-        camera_rotate_y += 5;
-        if (camera_rotate_y > 360)
-            camera_rotate_y -= 360;
-        updateCamera();
-        break;
-    case 'd':
-        camera_rotate_y -= 5;
-        if (camera_rotate_y < -360)
-            camera_rotate_y += 360;
-        updateCamera();
-        break;
-    case 'w':
-        camera_rotate_x -= 2;
-        updateCamera();
-        break;
-    case 's':
-        camera_rotate_x += 2;
-        updateCamera();
-        break;
-    case '1':
-        if (glIsEnabled(GL_LIGHT1))
-            glDisable(GL_LIGHT1);
-        else
-            glEnable(GL_LIGHT1);
-        break;
-    case '2':
-        if (glIsEnabled(GL_LIGHT2))
-            glDisable(GL_LIGHT2);
-        else
-            glEnable(GL_LIGHT2);
-        break;
-    case '3':
-        if (glIsEnabled(GL_LIGHT3))
-            glDisable(GL_LIGHT3);
-        else
-            glEnable(GL_LIGHT3);
-        break;
-    case '4':
-        if (glIsEnabled(GL_LIGHT4))
-            glDisable(GL_LIGHT4);
-        else
-            glEnable(GL_LIGHT4);
-        break;
-    default:
-        break;
+        case 'a':
+            camera_rotate_y += 5;
+            if (camera_rotate_y > 360)
+                camera_rotate_y -= 360;
+            updateCamera();
+            break;
+        case 'd':
+            camera_rotate_y -= 5;
+            if (camera_rotate_y < -360)
+                camera_rotate_y += 360;
+            updateCamera();
+            break;
+        case 'w':
+            camera_rotate_x -= 2;
+            updateCamera();
+            break;
+        case 's':
+            camera_rotate_x += 2;
+            updateCamera();
+            break;
+        case '1':
+            if (glIsEnabled(GL_LIGHT1))
+                glDisable(GL_LIGHT1);
+            else
+                glEnable(GL_LIGHT1);
+            break;
+        case '2':
+            if (glIsEnabled(GL_LIGHT2))
+                glDisable(GL_LIGHT2);
+            else
+                glEnable(GL_LIGHT2);
+            break;
+        case '3':
+            if (glIsEnabled(GL_LIGHT3))
+                glDisable(GL_LIGHT3);
+            else
+                glEnable(GL_LIGHT3);
+            break;
+        case '4':
+            if (glIsEnabled(GL_LIGHT4))
+                glDisable(GL_LIGHT4);
+            else
+                glEnable(GL_LIGHT4);
+            break;
+        default:
+            break;
     }
     glutPostRedisplay();
+}
+
+void timf(int value) // Timer function
+{
+    glutPostRedisplay();  // Redraw windows
+    glutTimerFunc(40, timf, 0); // Setup next timer
 }
 
 void reshape(int width, int height) {
@@ -398,6 +492,7 @@ int main(int argc, char* argv[]) {
 
     glutReshapeFunc(reshape);
     glutDisplayFunc(update);
+    glutTimerFunc(40, timf, 0);
     glutSpecialFunc(driving);
     glutKeyboardFunc(keyboard);
     glutMouseFunc(mouse);
