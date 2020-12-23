@@ -203,7 +203,7 @@ void drawChristmasTree() {
 
     glColor3f(1, 0, 0);
     glPushMatrix();
-    translationVector = glm::rotateY(glm::vec4(1.f, 3.2f, 1.7f, 0), (float)tree_z_angle / 57.f);
+    translationVector = glm::rotateY(glm::vec4(1.f, 3.2f, 1.6f, 0), (float)tree_z_angle / 57.f);
     glTranslatef(translationVector.x, translationVector.y, translationVector.z);
     glutSolidSphere(0.2f, 20, 20);
     glPopMatrix();
@@ -215,13 +215,48 @@ void drawChristmasTree() {
     glutSolidSphere(0.2f, 20, 20);
     glPopMatrix();
 
-    for (auto j = 0; j <= 360; j+=36) {
-        glColor3f(0, 0, 1);
-        glPushMatrix();
-        translationVector = glm::rotateY(glm::vec4(2.f*cos(j), 1.2f, 2.f*sin(j), 0), (float)tree_z_angle / 57.f);
-        glTranslatef(translationVector.x, translationVector.y, translationVector.z);
-        glutSolidSphere(0.25f, 20, 20);
-        glPopMatrix();
+    for (auto i = 0; i <= 8; i++) {
+        for (auto j = 0; j <= 360; j += 36) {
+            glColor3f(0, 0, 1);
+            glPushMatrix();
+            translationVector = glm::rotateY(glm::vec4((2.f - 0.2 * i) * cos(j), 1.2f + 0.2 * i, (2.f - 0.2 * i) * sin(j), 0), (float)tree_z_angle / 57.f);
+            glTranslatef(translationVector.x, translationVector.y, translationVector.z);
+            glutSolidSphere(0.1f, 20, 20);
+            glPopMatrix();
+        }
+    }
+
+    for (auto i = 0; i <= 7; i++) {
+        for (auto j = 0; j <= 360; j += 36) {
+            glColor3f(1, 1, 1);
+            glPushMatrix();
+            translationVector = glm::rotateY(glm::vec4((1.7f - 0.2 * i) * cos(j), 3.2f + 0.2 * i, (1.7f - 0.2 * i) * sin(j), 0), (float)tree_z_angle / 57.f);
+            glTranslatef(translationVector.x, translationVector.y, translationVector.z);
+            glutSolidSphere(0.1f, 20, 20);
+            glPopMatrix();
+        }
+    }
+
+    for (auto i = 0; i <= 4; i++) {
+        for (auto j = 0; j <= 360; j += 36) {
+            glColor3f(1, 0, 0);
+            glPushMatrix();
+            translationVector = glm::rotateY(glm::vec4((1.f - 0.2 * i) * cos(j), 6.1f + 0.2 * i, (1.f - 0.2 * i) * sin(j), 0), (float)tree_z_angle / 57.f);
+            glTranslatef(translationVector.x, translationVector.y, translationVector.z);
+            glutSolidSphere(0.1f, 20, 20);
+            glPopMatrix();
+        }
+    }
+
+    for (auto i = 0; i <= 5; i++) {
+        for (auto j = 0; j <= 360; j += 36) {
+            glColor3f(1, 1, 0);
+            glPushMatrix();
+            translationVector = glm::rotateY(glm::vec4((1.3f - 0.2 * i) * cos(j), 4.9f + 0.2 * i, (1.3f - 0.2 * i) * sin(j), 0), (float)tree_z_angle / 57.f);
+            glTranslatef(translationVector.x, translationVector.y, translationVector.z);
+            glutSolidSphere(0.1f, 20, 20);
+            glPopMatrix();
+        }
     }
 }
 
